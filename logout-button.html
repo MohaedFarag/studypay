@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>زر تسجيل الخروج</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+            direction: rtl;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        .info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚪 اختبار تسجيل الخروج</h1>
+    
+    <div class="info">
+        <h3>معلومات الجلسة الحالية:</h3>
+        <p id="loginStatus">جاري التحقق...</p>
+        <p id="userInfo"></p>
+    </div>
+    
+    <button class="logout-btn" onclick="clearAllData()">
+        🗑️ مسح جميع البيانات وتسجيل الخروج
+    </button>
+    
+    <button class="logout-btn" onclick="goToLogin()" style="background: #007bff;">
+        🔑 الذهاب إلى صفحة تسجيل الدخول
+    </button>
+    
+    <div id="status" class="status"></div>
+    
+    <div class="info">
+        <h3>البيانات المحفوظة في المتصفح:</h3>
+        <div id="storageInfo"></div>
+    </div>
+
+    <script>
+        function updateInfo() {
+            const loginStatus = document.getElementById('loginStatus');
+            const userInfo = document.getElementById('userInfo');
+            const storageInfo = document.getElementById('storageInfo');
+            
+            // Check login status
+            const isLoggedIn = localStorage.getItem('studypal_logged_in') === 'true';
+            const userEmail = localStorage.getItem('studypal_user_email');
+            
+            if (isLoggedIn) {
+                loginStatus.textContent = '✅ مسجل دخول';
+                loginStatus.style.color = 'green';
+                userInfo.textContent = 'البريد الإلكتروني: ' + (userEmail || 'غير محدد');
+            } else {
+                loginStatus.textContent = '❌ غير مسجل دخول';
+                loginStatus.style.color = 'red';
+                userInfo.textContent = '';
+            }
+            
+            // Show all localStorage data
+            let storageHtml = '<ul>';
+            const keys = [
+                'studypal_logged_in',
+                'studypal_user_email', 
+                'studypal_user_name',
+                'token',
+                'user',
+                'isLoggedIn',
+                'userEmail'
+            ];
+            
+            keys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    storageHtml += `<li><strong>${key}:</strong> ${value}</li>`;
+                }
+            });
+            storageHtml += '</ul>';
+            
+            storageInfo.innerHTML = storageHtml;
+        }
+        
+        function clearAllData() {
+            // Clear all possible authentication keys
+            const keysToRemove = [
+                'studypal_logged_in',
+                'studypal_user_email',
+                'studypal_user_name',
+                'token',
+                'user',
+                'isLoggedIn',
+                'userEmail'
+            ];
+            
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+            });
+            
+            showStatus('✅ تم مسح جميع البيانات بنجاح!');
+            updateInfo();
+        }
+        
+        function goToLogin() {
+            window.location.href = '/login';
+        }
+        
+        function showStatus(message) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status success';
+            status.style.display = 'block';
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Update info on page load and every 2 seconds
+        window.onload = updateInfo;
+        setInterval(updateInfo, 2000);
+    </script>
+</body>
+</html>

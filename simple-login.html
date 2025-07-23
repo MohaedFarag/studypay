@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyPal - تسجيل الدخول</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            direction: rtl;
+        }
+        
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo h1 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .logo p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .login-btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .login-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border-radius: 5px;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .logout-section {
+            text-align: center;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        .dashboard-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        
+        .dashboard-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>📚 StudyPal</h1>
+            <p>منصة الدراسة الذكية</p>
+        </div>
+        
+        <div id="loginForm">
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="email">البريد الإلكتروني:</label>
+                    <input type="email" id="email" name="email" required placeholder="أدخل بريدك الإلكتروني">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">كلمة المرور:</label>
+                    <input type="password" id="password" name="password" required placeholder="أدخل كلمة المرور">
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginBtn">تسجيل الدخول</button>
+            </form>
+            
+            <div id="status" class="status" style="display: none;"></div>
+        </div>
+        
+        <div id="loggedInSection" style="display: none;" class="logout-section">
+            <h3>مرحباً بك!</h3>
+            <p>أنت مسجل دخول بالفعل</p>
+            <p id="userEmail"></p>
+            <button class="dashboard-btn" onclick="goToDashboard()">الذهاب إلى لوحة التحكم</button>
+            <button class="logout-btn" onclick="handleLogout()">تسجيل الخروج</button>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is already logged in
+        function checkLoginStatus() {
+            const isLoggedIn = localStorage.getItem('studypal_logged_in') === 'true';
+            const userEmail = localStorage.getItem('studypal_user_email');
+            
+            if (isLoggedIn && userEmail) {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('loggedInSection').style.display = 'block';
+                document.getElementById('userEmail').textContent = 'البريد الإلكتروني: ' + userEmail;
+            } else {
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('loggedInSection').style.display = 'none';
+            }
+        }
+        
+        // Handle login
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const status = document.getElementById('status');
+            
+            // Disable button and show loading
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'جاري تسجيل الدخول...';
+            
+            // Simple validation
+            if (!email || !password) {
+                showStatus('يرجى إدخال البريد الإلكتروني وكلمة المرور', 'error');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'تسجيل الدخول';
+                return;
+            }
+            
+            // Simulate login process
+            setTimeout(() => {
+                // Save login data
+                localStorage.setItem('studypal_logged_in', 'true');
+                localStorage.setItem('studypal_user_email', email);
+                localStorage.setItem('studypal_user_name', 'أحمد محمد');
+                
+                showStatus('تم تسجيل الدخول بنجاح! جاري التوجيه...', 'success');
+                
+                // Redirect after short delay
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1000);
+                
+            }, 1000);
+        }
+        
+        // Handle logout
+        function handleLogout() {
+            // Clear all data
+            localStorage.removeItem('studypal_logged_in');
+            localStorage.removeItem('studypal_user_email');
+            localStorage.removeItem('studypal_user_name');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userEmail');
+            
+            showStatus('تم تسجيل الخروج بنجاح!', 'success');
+            
+            // Refresh page to show login form
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+        
+        // Go to dashboard
+        function goToDashboard() {
+            window.location.href = '/dashboard';
+        }
+        
+        // Show status message
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+            status.style.display = 'block';
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Check login status on page load
+        window.onload = checkLoginStatus;
+    </script>
+</body>
+</html>

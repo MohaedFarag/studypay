@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyPal - اختبار الحماية</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        .status {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+        .authenticated {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .not-authenticated {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: right;
+        }
+        .link {
+            color: #667eea;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 اختبار نظام الحماية</h1>
+        
+        <div id="authStatus" class="status not-authenticated">
+            غير مسجل دخول
+        </div>
+        
+        <div class="info">
+            <strong>حالة المصادقة:</strong><br>
+            <span id="userInfo">لا توجد بيانات مستخدم</span>
+        </div>
+        
+        <div>
+            <button onclick="testLogin()">تسجيل دخول تجريبي</button>
+            <button onclick="testLogout()">تسجيل خروج</button>
+            <button onclick="clearStorage()">مسح البيانات</button>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <h3>اختبار الروابط المحمية:</h3>
+            <div>
+                <span class="link" onclick="testNavigation('preview.html')">الذهاب لصفحة المعاينة</span><br>
+                <span class="link" onclick="testNavigation('dashboard')">الذهاب للوحة التحكم</span><br>
+                <span class="link" onclick="testNavigation('tasks')">الذهاب للمهام</span><br>
+                <span class="link" onclick="testNavigation('calendar')">الذهاب للتقويم</span>
+            </div>
+        </div>
+        
+        <div id="testResults" style="margin-top: 2rem;"></div>
+    </div>
+
+    <script>
+        function checkAuthStatus() {
+            const isLoggedIn = localStorage.getItem('studypal_logged_in') === 'true';
+            const userEmail = localStorage.getItem('studypal_user_email');
+            const userName = localStorage.getItem('studypal_user_name');
+            
+            const statusEl = document.getElementById('authStatus');
+            const userInfoEl = document.getElementById('userInfo');
+            
+            if (isLoggedIn && userEmail) {
+                statusEl.className = 'status authenticated';
+                statusEl.textContent = '✅ مسجل دخول';
+                userInfoEl.innerHTML = `
+                    <strong>الاسم:</strong> ${userName || 'غير محدد'}<br>
+                    <strong>البريد:</strong> ${userEmail}<br>
+                    <strong>وقت التسجيل:</strong> ${new Date().toLocaleString('ar')}
+                `;
+            } else {
+                statusEl.className = 'status not-authenticated';
+                statusEl.textContent = '❌ غير مسجل دخول';
+                userInfoEl.textContent = 'لا توجد بيانات مستخدم';
+            }
+        }
+        
+        function testLogin() {
+            const userData = {
+                name: 'أحمد محمد (اختبار)',
+                email: 'test@studypal.com',
+                loginMethod: 'test',
+                loginTime: new Date().toISOString()
+            };
+            
+            localStorage.setItem('studypal_logged_in', 'true');
+            localStorage.setItem('studypal_user_email', userData.email);
+            localStorage.setItem('studypal_user_name', userData.name);
+            localStorage.setItem('studypal_user_data', JSON.stringify(userData));
+            
+            checkAuthStatus();
+            showResult('تم تسجيل الدخول التجريبي بنجاح! ✅', 'success');
+        }
+        
+        function testLogout() {
+            const keys = [
+                'studypal_logged_in',
+                'studypal_user_email',
+                'studypal_user_name',
+                'studypal_user_data',
+                'studypal_user',
+                'studypal_profile'
+            ];
+            
+            keys.forEach(key => localStorage.removeItem(key));
+            checkAuthStatus();
+            showResult('تم تسجيل الخروج بنجاح! 👋', 'success');
+        }
+        
+        function clearStorage() {
+            localStorage.clear();
+            checkAuthStatus();
+            showResult('تم مسح جميع البيانات! 🗑️', 'info');
+        }
+        
+        function testNavigation(page) {
+            const isLoggedIn = localStorage.getItem('studypal_logged_in') === 'true';
+            
+            if (isLoggedIn) {
+                showResult(`✅ يمكن الوصول لصفحة ${page} - المستخدم مسجل دخول`, 'success');
+                if (page === 'preview.html') {
+                    // Test opening preview.html in new tab
+                    window.open('preview.html', '_blank');
+                }
+            } else {
+                showResult(`🔒 تم منع الوصول لصفحة ${page} - المستخدم غير مسجل دخول`, 'error');
+            }
+        }
+        
+        function showResult(message, type) {
+            const resultsEl = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.style.padding = '0.5rem';
+            resultDiv.style.margin = '0.5rem 0';
+            resultDiv.style.borderRadius = '5px';
+            resultDiv.style.fontSize = '0.9rem';
+            
+            if (type === 'success') {
+                resultDiv.style.background = '#d4edda';
+                resultDiv.style.color = '#155724';
+            } else if (type === 'error') {
+                resultDiv.style.background = '#f8d7da';
+                resultDiv.style.color = '#721c24';
+            } else {
+                resultDiv.style.background = '#d1ecf1';
+                resultDiv.style.color = '#0c5460';
+            }
+            
+            resultDiv.textContent = message;
+            resultsEl.appendChild(resultDiv);
+            
+            // Remove old results
+            const results = resultsEl.children;
+            if (results.length > 5) {
+                resultsEl.removeChild(results[0]);
+            }
+        }
+        
+        // Check status on page load
+        checkAuthStatus();
+        
+        // Monitor storage changes
+        window.addEventListener('storage', checkAuthStatus);
+        
+        // Periodic check
+        setInterval(checkAuthStatus, 2000);
+    </script>
+</body>
+</html>
